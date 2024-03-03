@@ -1,0 +1,1503 @@
+﻿@{
+    Layout = "_LayoutUsers";
+    var email = ViewContext.HttpContext.Request.Cookies["userEmail"].ToString();
+    var key = email.Replace("@", "_").Replace(".", "_") + "perlimit";
+    var key2 = email.Replace("@", "_").Replace(".", "_") + "todaylimit";
+    var key3 = email.Replace("@", "_").Replace(".", "_") + "rem";
+    var exportlimit = ViewContext.HttpContext.Request.Cookies[key];
+    var todayexportlimit = ViewContext.HttpContext.Request.Cookies[key2];
+    var rem = ViewContext.HttpContext.Request.Cookies[key3] ?? ViewContext.HttpContext.Request.Cookies[key2];
+    var name = ViewContext.HttpContext.Request.Cookies["userfname"];
+    var count = "";
+    var userNote = ViewContext.HttpContext.Request.Cookies["userNote"] ?? "";
+    var million = 1000000;
+    @if (ViewBag.totalcount > 0 && ViewBag.totalcount < million)
+    {
+        var formattedCount = ((int)ViewBag.totalcount).ToString("#,0");
+        count = formattedCount;
+    }
+    else if (ViewBag.totalcount > 0 && ViewBag.totalcount >= million)
+    {
+        count = "1M+";
+    }
+
+}
+<style>
+    .lbl {
+        font-weight: bold;
+    }
+
+    .dataTables_paginate, .dataTables_info {
+        display: none;
+    }
+
+    .detail-view {
+        background-color: white;
+        color: #2574a9;
+    }
+
+    body {
+        font-family: 'Sharp Sans', sans-serif;
+    }
+
+    table {
+        background-color: white; /* Set background color to white */
+        width: 100%;
+        border-collapse: collapse; /* Collapse border spacing */
+    }
+
+    td {
+        border-color: #0B5ED7;
+    }
+
+    *,
+    ::after,
+    ::before {
+        box-sizing: border-box;
+    }
+
+    #main {
+        width: 100%;
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        font-size: 0.875rem;
+        opacity: 1;
+        overflow-y: scroll;
+        margin: 0;
+    }
+
+    a {
+        cursor: pointer;
+        text-decoration: none;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    li {
+        list-style: none;
+    }
+
+    h4 {
+        font-family: 'Poppins', sans-serif;
+        font-size: 1.275rem;
+        color: var(--bs-emphasis-color);
+    }
+
+    /* Layout for admin dashboard skeleton */
+
+    .wrapper {
+        align-items: stretch;
+        display: flex;
+        width: 100%;
+    }
+
+    #sidebar {
+        max-width: 246px;
+        min-width: 246px;
+        transition: all 0.35s ease-in-out;
+    }
+
+    .main {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        min-width: 0;
+        overflow: hidden;
+        transition: all 0.35s ease-in-out;
+        width: 100%;
+        background: var(--bs-dark-bg-subtle);
+    }
+
+    /* Sidebar Elements Style */
+
+    .sidebar-logo {
+        padding: 1.15rem;
+    }
+
+        .sidebar-logo a {
+            color: #e9ecef;
+            font-size: 1.15rem;
+            font-weight: 600;
+        }
+
+    .sidebar-nav {
+        flex-grow: 1;
+        list-style: none;
+        margin-bottom: 0;
+        padding-left: 0;
+        margin-left: 0;
+    }
+
+    .sidebar-header {
+        color: #e9ecef;
+        font-size: .75rem;
+        padding: 1.5rem 1.5rem .375rem;
+    }
+
+    a.sidebar-link {
+        padding: .625rem 1.625rem;
+        color: #e9ecef;
+        position: relative;
+        display: block;
+        font-size: 0.875rem;
+    }
+
+    .sidebar-link[data-bs-toggle="collapse"]::after {
+        border: solid;
+        border-width: 0 .075rem .075rem 0;
+        content: "";
+        display: inline-block;
+        padding: 2px;
+        position: absolute;
+        right: 1.5rem;
+        top: 1.4rem;
+        transform: rotate(-135deg);
+        transition: all .2s ease-out;
+    }
+
+    .sidebar-link[data-bs-toggle="collapse"].collapsed::after {
+        transform: rotate(45deg);
+        transition: all .2s ease-out;
+    }
+
+    .avatar {
+        height: 40px;
+        width: 40px;
+    }
+
+    .navbar-expand .navbar-nav {
+        margin-left: auto;
+    }
+
+    .content {
+        flex: 1;
+        max-width: 100vw;
+        width: 100vw;
+    }
+
+    @@media (min-width:768px) {
+        .content {
+            max-width: auto;
+            width: auto;
+        }
+    }
+
+    .card {
+        box-shadow: 0 0 .875rem 0 rgba(34, 46, 60, .05);
+        margin-bottom: 24px;
+    }
+
+    .illustration {
+        background-color: var(--bs-primary-bg-subtle);
+        color: var(--bs-emphasis-color);
+    }
+
+    .illustration-img {
+        max-width: 150px;
+        width: 100%;
+    }
+
+    /* Sidebar Toggle */
+
+    #sidebar.collapsed {
+        margin-left: -246px;
+    }
+
+    /* Footer and Nav */
+
+    @@media (max-width:767.98px) {
+
+        .js-sidebar {
+            margin-left: -246px;
+        }
+
+        #sidebar.collapsed {
+            margin-left: 0;
+        }
+
+        .navbar,
+        footer {
+            width: 100vw;
+        }
+    }
+
+    /* Theme Toggler */
+
+    .theme-toggle {
+        position: fixed;
+        top: 50%;
+        transform: translateY(-65%);
+        text-align: center;
+        z-index: 10;
+        right: 0;
+        left: auto;
+        border: none;
+        background-color: var(--bs-body-color);
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    html[data-bs-theme="dark"] .theme-toggle .fa-sun,
+    html[data-bs-theme="light"] .theme-toggle .fa-moon {
+        cursor: pointer;
+        padding: 10px;
+        display: block;
+        font-size: 1.25rem;
+        color: #FFF;
+    }
+
+    html[data-bs-theme="dark"] .theme-toggle .fa-moon {
+        display: none;
+    }
+
+    html[data-bs-theme="light"] .theme-toggle .fa-sun {
+        display: none;
+    }
+
+
+    a {
+        text-decoration: none;
+    }
+
+    .dialog-background {
+        background: none repeat scroll 0 0 rgba(11, 94, 215, 0.2);
+        height: 100%;
+        left: 0;
+        margin: 0;
+        padding: 0;
+        position: absolute;
+        top: 0;
+        width: 100%;
+        z-index: 100;
+    }
+
+    .dialog-loading-wrapper {
+        background: none repeat scroll 0 0 rgba(0, 0, 0, 0);
+        border: 0 none;
+        height: 100px;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        position: fixed;
+        top: 50%;
+        width: 100px;
+        z-index: 9999999;
+    }
+    /* .dialog-loading-icon {
+        background-color: #FFFFFF !important;
+        border-radius: 13px;
+        display: block;
+        height: 100px;
+        line-height: 100px;
+        margin: 0;
+        padding: 1px;
+        text-align: center;
+        width: 100px;
+    } */
+
+</style>
+<div class="dialog-background" style="display:none;">
+    <div class="dialog-loading-wrapper">
+        @* <span class="dialog-loading-icon">Loading....</span> *@
+        <div class="spinner-border spinner-border-lg text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+
+    </div>
+</div>
+<div class="wrapper">
+    <aside id="sidebar" class="js-sidebar bg-light">
+        <div class="h-100">
+            <div class="sidebar-logo d-flex justify-content-center align-items-center">
+                <a href="#" class="fs-4 text-dark text-center">
+                    <img src="~/images/findome.png" width="150px" height="150px" class="img-fluid" alt="Alternate Text" />
+                </a>
+            </div>
+
+            <div class="d-flex justify-content-center align-items-center mt-3 mb-3">
+                <div class="d-grid gap-2 d-md-block mx-auto">
+                    <button class="btn btn-outline-primary" id="btnclear" type="button"><i class="bi bi-x"></i> Clear</button>
+                    <button class="btn btn-primary" id="btnsearch" type="button"><i class="bi bi-search"></i> Search</button>
+                </div>
+            </div>
+            <div class="modal fade" id="myModal">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+
+                        <!-- Modal Header -->
+                        <div class="modal-header">
+                            <h4 class="modal-title">CSV Export</h4>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+
+                        <!-- Modal Body -->
+                        <div class="modal-body">
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-12 mb-1  d-none">
+                                        <label class="form-label">Today Export Limit</label>
+                                    </div>
+                                    <div class="col-12 mb-2 d-none">
+                                        <input type="text" class="form-control" disabled value="@todayexportlimit" />
+                                    </div>
+                                    <div class="col-12 mb-1">
+                                        <label class="form-label">Contacts Per Export</label>
+                                    </div>
+                                    <div class="col-12 mb-2">
+                                        <input type="text" class="form-control" disabled value="@exportlimit" />
+                                        <br>
+                                        <labek>@userNote</labek>
+                                    </div>
+                                    <div class="col-12 mb-1 d-none">
+                                        <label class="form-label">Today Remaining Export Limit</label>
+                                    </div>
+                                    <div class="col-12 mb-2 d-none">
+                                        <input type="text" class="form-control" id="txtrem" disabled value="@rem" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal Footer -->
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary close" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" id="btnfinalexport"><i class="bi bi-file-earmark-spreadsheet-fill"></i> Export</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="myModal2" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Upgrade Your Account</h5>
+                            <button type="button" class="modal2close close" data-dismiss="modal">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <p>You’ve Reached the free search limit.</p>
+                            <p>Fsome.com allows only 3 free searches for users without a subscription.</p>
+                            <p>Upgrade now for <b>unlimited</b> contacts + <b>unlimited</b> searches</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary close modal2close" data-dismiss="modal">Cancel</button>
+                            <a type="button" class="btn btn-primary" href="https://fsome.com/plan">Upgrade</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion" id="accordionExample">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="true" aria-controls="collapseOne">
+                            Company
+                        </button>
+                    </h2>
+                    <div id="collapse3" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                        <div class="container p-3">
+                            <div class="row">
+                                <div class="col-12 mb-2 font-weight-bold">
+                                    <label class="lbl">Company Name</label>
+                                </div>
+                                <div class="col-12 mb-2">
+                                    <input type="text" id="txtcompany" class="form-control" />
+                                </div>
+
+                                <div class="col-12 mb-2 font-weight-bold">
+                                    <label class="lbl">Company Size</label>
+                                </div>
+
+                                <div class="col-12 mb-2">
+                                    <input class="form-control" id="txtminempsize" min="0" type="number" placeholder="Enter Min" />
+                                </div>
+                                <div class="col-12 mb-2">
+                                    <input class="form-control" id="txtmaxempsize" min="0" type="number" placeholder="Enter Max" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse33" aria-expanded="true" aria-controls="collapseOne">
+                            Contact
+                        </button>
+                    </h2>
+                    <div id="collapse33" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                        <div class="container p-3">
+                            <div class="row">
+                                <div class="col-12 mb-2 font-weight-bold">
+                                    <label class="lbl">First Name</label>
+                                </div>
+                                <div class="col-12 mb-2">
+                                    <input type="text" id="txtfirstname" class="form-control" />
+                                </div>
+
+                                <div class="col-12 mb-2 font-weight-bold">
+                                    <label class="lbl">Last Name</label>
+                                </div>
+
+                                <div class="col-12 mb-2">
+                                    <input type="text" id="txtlastname" class="form-control" />
+                                </div>
+
+                                <div class="col-12 mb-2 font-weight-bold">
+                                    <label class="lbl">Email</label>
+                                </div>
+
+                                <div class="col-12 mb-2">
+                                    <input type="text" id="txtemail" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4" aria-expanded="true" aria-controls="collapseOne">
+                            Location
+                        </button>
+                    </h2>
+                    <div id="collapse4" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                        <div class="container p-3">
+                            <div class="row">
+                                <div class="col-12 mb-2 font-weight-bold d-none">
+                                    <label class="lbl">Location Type</label>
+                                </div>
+                                <div class="col-12 mb-2 d-none">
+                                    <input type="text" id="txtlocationtype" class="form-control" />
+                                </div>
+                                <div class="col-12 mb-2 font-weight-bold">
+                                    <label class="lbl">Country</label>
+                                </div>
+                                <div class="col-12 mb-2">
+                                    <input type="text" id="txtcountry" class="form-control" />
+                                </div>
+                                <div class="col-12 mb-2 font-weight-bold">
+                                    <label class="lbl">State</label>
+                                </div>
+                                <div class="col-12 mb-2">
+                                    <input type="text" id="txtstate" class="form-control" />
+                                </div>
+                                <div class="col-12 mb-2 font-weight-bold">
+                                    <label class="lbl">City</label>
+                                </div>
+                                <div class="col-12 mb-2">
+                                    <input type="text" id="txtcity" class="form-control" />
+                                </div>
+                                <div class="col-12 mb-2 font-weight-bold">
+                                    <label class="lbl">Zip Code</label>
+                                </div>
+                                <div class="col-12 mb-2">
+                                    <input type="text" id="txtzip" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapseOne">
+                            Level
+                        </button>
+                    </h2>
+                    <div id="collapse2" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                        <div class="container p-3">
+                            <div class="row">
+                                @*  <div class="col-12 mb-2 font-weight-bold">
+                                <label class="lbl">Level</label>
+                                </div>
+                                *@
+                                <div class="col-12 mb-2">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" onchange="toggleChildCheckboxes(this)" id="selectAlllevel">
+                                        <label class="form-check-label" for="selectAlllevel">Select All</label>
+                                    </div>
+
+                                    @foreach (var item in ViewBag.levellist)
+                                    {
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-check">
+                                                    <input class="form-check-input child-checkbox selectAlllevel" type="checkbox" id="@item">
+                                                    <label class="form-check-label" for="@item">@item</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            Job Department
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                        <div class="container p-3">
+                            <div class="row">
+                                @*  <div class="col-12 mb-2">
+                                <label class="lbl">Job Department</label>
+                                </div>
+                                *@
+                                <div class="col-12">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" onchange="toggleChildCheckboxes(this)" id="selectAlldepartment">
+                                        <label class="form-check-label" for="selectAlldepartment">Select All</label>
+                                    </div>
+
+                                    @foreach (var item in ViewBag.departmentlist)
+                                    {
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-check">
+                                                    <input class="form-check-input child-checkbox selectAlldepartment" type="checkbox" id="@item">
+                                                    <label class="form-check-label" for="@item">@item</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse6" aria-expanded="false" aria-controls="collapseOne">
+                            Company Sector
+                        </button>
+                    </h2>
+                    <div id="collapse6" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                        <div class="container p-3">
+                            <div class="row">
+                                <div class="col-12 mb-2 font-weight-bold">
+                                    <label class="lbl">Company Sector</label>
+                                </div>
+                                <div class="col-12 mb-2">
+                                    <input type="text" id="txtkeyword" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse66" aria-expanded="false" aria-controls="collapseOne">
+                            Job Title
+                        </button>
+                    </h2>
+                    <div id="collapse66" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                        <div class="container p-3">
+                            <div class="row">
+                                <div class="col-12 mb-2 font-weight-bold">
+                                    <label class="lbl">Job Title</label>
+                                </div>
+                                <div class="col-12 mb-2">
+                                    <input type="text" id="txtjobtitle" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse9" aria-expanded="true" aria-controls="collapseOne">
+                            Revenue
+                        </button>
+                    </h2>
+                    <div id="collapse9" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                        <div class="container p-3">
+                            <div class="row">
+                                <div class="col-12 mb-2 font-weight-bold">
+                                    <label class="lbl">Revenue (In millions)</label>
+                                </div>
+                                <div class="col-12 mb-2">
+                                    <input class="form-control" id="txtminrevenue" min="0" type="number" placeholder="Enter Min" />
+                                </div>
+                                <div class="col-12 mb-2">
+                                    <input class="form-control" id="txtmaxrevenue" min="0" type="number" placeholder="Enter Max" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse8" aria-expanded="false" aria-controls="collapseOne">
+                            Industry
+                        </button>
+                    </h2>
+                    <div id="collapse8" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                        <div class="container p-3">
+                            <div class="row">
+                                <div class="col-12 mb-2 font-weight-bold">
+                                    <label class="lbl">Industry</label>
+                                </div>
+
+                                <div class="col-12 mb-2 mt-2">
+                                    <details>
+                                        <summary>
+                                            <!-- Wrap the checkbox and label inside the summary -->
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading1">
+                                                <label class="form-check-label" for="heading1">Agriculture, Forestry, Fishing and Hunting</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading1)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading1 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </details>
+                                </div>
+
+
+                                <div class="col-12 mb-2 mt-1">
+                                    <details>
+                                        <summary>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading2">
+                                                <label class="form-check-label" for="heading2">Arts, Entertainment, and Recreation</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading2)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading2 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+
+                                    </details>
+
+                                </div>
+
+                                <div class="col-12 mb-2 mt-1">
+                                    <details>
+                                        <summary>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading3">
+                                                <label class="form-check-label" for="heading3">Business Support Services</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading3)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading3 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </details>
+                                </div>
+
+                                <div class="col-12 mb-2 mt-1">
+                                    <details>
+                                        <summary>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading4">
+                                                <label class="form-check-label" for="heading4">Construction</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading4)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading4 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </details>
+                                </div>
+
+                                <div class="col-12 mb-2 mt-1">
+                                    <details>
+                                        <summary>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading5">
+                                                <label class="form-check-label" for="heading5">Educational Services</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading5)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading5 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </details>
+                                </div>
+
+                                <div class="col-12 mb-2 mt-1">
+                                    <details>
+                                        <summary>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading6">
+                                                <label class="form-check-label" for="heading6">Energy, Utilities and Oil & Gas</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading6)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading6 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </details>
+                                </div>
+
+                                <div class="col-12 mb-2 mt-1">
+                                    <details>
+                                        <summary>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading7">
+                                                <label class="form-check-label" for="heading7">Finance and Insurance</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading7)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading7 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </details>
+                                </div>
+
+                                <div class="col-12 mb-2 mt-1">
+                                    <details>
+                                        <summary>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading8">
+                                                <label class="form-check-label" for="heading8">Government and Public Administration</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading8)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading8 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </details>
+                                </div>
+
+                                <div class="col-12 mb-2 mt-1">
+                                    <details>
+                                        <summary>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading9">
+                                                <label class="form-check-label" for="heading9">Health Care and Social Assistance</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading9)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading9 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </details>
+                                </div>
+
+                                <div class="col-12 mb-2 mt-1">
+                                    <details>
+                                        <summary>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading10">
+                                                <label class="form-check-label" for="heading10">Hospitality and Food Services</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading10)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading10 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </details>
+                                </div>
+
+                                <div class="col-12 mb-2 mt-1">
+                                    <details>
+
+                                        <summary>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading11">
+                                                <label class="form-check-label" for="headin11">Hospitality and Food Services</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading11)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading11 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </details>
+                                </div>
+
+                                <div class="col-12 mb-2 mt-1">
+                                    <details>
+                                        <summary>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading12">
+                                                <label class="form-check-label" for="heading12">Information Technology</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading12)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading12 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </details>
+                                </div>
+
+                                <div class="col-12 mb-2 mt-1">
+                                    <details>
+                                        <summary>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading13">
+                                                <label class="form-check-label" for="heading13">Manufacturing</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading13)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading13 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </details>
+                                </div>
+
+                                <div class="col-12 mb-2 mt-1">
+                                    <details>
+                                        <summary>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading14">
+                                                <label class="form-check-label" for="heading14">Media</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading14)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading14 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </details>
+                                </div>
+
+                                <div class="col-12 mb-2 mt-1">
+                                    <details>
+                                        <summary>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading15">
+                                                <label class="form-check-label" for="heading15">Other Services (except Public Administration)</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading15)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading15 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </details>
+
+                                </div>
+
+                                <div class="col-12 mb-2 mt-1">
+                                    <details>
+                                        <summary>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading16">
+                                                <label class="form-check-label" for="heading16">Professional & Consumer Services</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading16)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading16 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </details>
+                                </div>
+
+                                <div class="col-12 mb-2 mt-1">
+                                    <details>
+                                        <summary>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading17">
+                                                <label class="form-check-label" for="heading17">Real Estate and Rental & Leasing</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading17)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading17 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </details>
+                                </div>
+
+                                <div class="col-12 mb-2 mt-1">
+                                    <details>
+                                        <summary>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading18">
+                                                <label class="form-check-label" for="heading18">Retail Trade</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading18)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading18 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </details>
+                                </div>
+
+                                <div class="col-12 mb-2 mt-1">
+                                    <details>
+                                        <summary>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" onchange="toggleChildCheckboxes(this)" type="checkbox" id="heading19">
+                                                <label class="form-check-label" for="heading19">Transportation and Warehousing</label>
+                                            </div>
+                                        </summary>
+
+                                        @foreach (var item in ViewBag.industrylist.heading19)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input child-checkbox heading19 heading" type="checkbox" id="@item">
+                                                        <label class="form-check-label" for="@item">@item</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </details>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse11" aria-expanded="true" aria-controls="collapseOne">
+                            Naics Code
+                        </button>
+                    </h2>
+                    <div id="collapse11" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                        <div class="container p-3">
+                            <div class="row">
+                                <div class="col-12 mb-2 font-weight-bold">
+                                    <label class="lbl">Naics Code</label>
+                                </div>
+                                <div class="col-12 mb-2">
+                                    <input type="text" id="txtnaics" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+    <div class="main">
+        <nav class="navbar navbar-expand px-3 border-bottom">
+            <button class="btn" id="sidebar-toggle" type="button">
+                <span class="navbar-toggler-icon d-flex justify-content-center align-items-center ">
+                    <i class="bi bi-list fs-2"></i>
+                </span>
+
+            </button>
+            <div class="navbar-collapse navbar">
+                <ul class="navbar-nav">
+                    <li class="nav-item p-3  text-center">
+                        <span class="fs-6" style="color:#003894;font-weight:bold">
+                            @if (!string.IsNullOrWhiteSpace(userNote))
+                            {
+                                <a class="btn btn-primary" href="https://fsome.com/plan">Upgrade</a>
+                            }
+                            else
+                            {
+                                <label>(Access Unlimited Contacts)</label>
+                            }
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   Welcome, @name
+                        </span>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="@Url.Action("Logout", "Login")" class="nav-link pe-md-0">
+                            <!-- Changed class to "nav-link" -->
+                            <i class="bi bi-box-arrow-right fa-2x fs-2" style="color:#4D5156;font-weight:bold;"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+        </nav>
+        <main class="content px-3 py-2">
+            <main role="main" id="main">
+                <div class="mt-2">
+                    <div class="row mb-2">
+                        <div class="col-12 mb-3" style="text-align: center;">
+                            <div style="display: inline-block;">
+                            </div>
+                        </div>
+
+
+                        <div class="col-12">
+                            <div class="input-group">
+                                <div class="ml-auto row align-items-center">
+                                    <div class="col-auto">
+                                        <span class="fs-6" style="color:#003894;font-weight:bold" id="tcount">Verified Contacts (@count)</span>
+                                    </div>
+                                    <div class="col-auto">
+                                        <button class="btn btn-primary custom-btn" id="btnexport"><i class="bi bi-file-earmark-spreadsheet-fill"></i> Export</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table shadow" style="width:100%" id="UsersTable">
+                            <thead>
+                                <tr class="text-light" style="background:#0B5ED7">
+                                    <th>id</th>
+                                    <th>Name</th>
+                                    <th>JOB TITLE</th>
+                                    <th>LEVEL</th>
+                                    <th>DEPARTMENT</th>
+                                    <th>COMPANY</th>
+                                    <th>LOCATION</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Add your table content here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </main>
+        <footer class="footer">
+            <div class="container-fluid">
+                <div class="row text-muted">
+                    <div class="col-6 text-start">
+                        <p class="mb-0">
+                            <a href="#" class="text-muted">
+                                <input type="hidden" id="remval" value="@ViewBag.rem" />
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var dataTable = initializeDataTable();
+        $('#btnclear').click(function () {
+            $('#accordionExample input[type="text"]').val('');
+            $('#accordionExample input[type="number"]').val('');
+            $('#accordionExample input[type="checkbox"]').prop('checked', false);
+        });
+        $('#btnexport').click(function () {
+            showModal();
+        });
+        $('.close').click(function () {
+            hideModal();
+        });
+        $('#btnfinalexport').click(function () {
+            var jsonData = getJsonData();
+            $('#btnfinalexport').html('<i class="bi bi-file-earmark-spreadsheet-fill"></i> Please wait...')
+            var limit = parseInt($('#txtrem').val());
+
+            if (limit <= 0) {
+                toastr.error('You’ve reached your daily export. Please Upgrade your plan.');
+                $('#btnfinalexport').html('<i class="bi bi-file-earmark-spreadsheet-fill"></i> Excel');
+                hideModal();
+                return false;
+            }
+            $.ajax({
+                type: "POST",
+                url: "/ContactFilter/Export",
+                contentType: 'application/json',
+                data: jsonData,
+                success: function (data, textStatus, xhr) {
+                    exportDataToExcel(data, "exported_data.xlsx");
+                    var remdata = xhr.getResponseHeader('remval');
+                    if (remdata == '') {
+                        $('#txtrem').val('0');
+                    } else {
+                        $('#txtrem').val(remdata);
+                    }
+
+                    hideModal();
+                    $('#btnfinalexport').html('<i class="bi bi-file-earmark-spreadsheet-fill"></i> Excel')
+                },
+                error: function (error) {
+                    $('#btnfinalexport').html('<i class="bi bi-file-earmark-spreadsheet-fill"></i> Excel')
+                    console.log("Error fetching data: ", error);
+                }
+            });
+        });
+        $('.modal2close').click(function () {
+            debugger;
+            $('#myModal2').modal('hide');
+        });
+        $('#btnsearch').click(function () {
+            debugger;
+            var checkuser = $.cookie("userCheck");
+            var searchlimit = $.cookie("searchlimit");
+            if (checkuser != "" && checkuser == "free") {
+                if (searchlimit == "" || searchlimit == null || searchlimit == undefined) {
+                    $.removeCookie("searchlimit");
+                    $.cookie("searchlimit", "1", { expires: 1 });
+                } else if (searchlimit == "1") {
+                    $.removeCookie("searchlimit");
+                    $.cookie("searchlimit", "2", { expires: 1 });
+                }
+                else if (searchlimit == "2") {
+                    $.removeCookie("searchlimit");
+                    $.cookie("searchlimit", "3", { expires: 1 });
+                }
+                else if (searchlimit == "3") {
+                    $("#myModal2").modal('show');
+                    return;
+                }
+            }
+            $('#btnsearch').html('<i class="bi bi-search"></i> Wait...');
+            var jsonData = getJsonData();
+            $(".dialog-background").show();
+
+            dataTable.ajax.url('/ContactFilter/GetAll').load({
+                type: 'POST',
+                contentType: 'application/json',
+                data: jsonData,
+            });
+
+        });
+        dataTable.on('draw.dt', function () {
+            $('#btnsearch').html('<i class="bi bi-search"></i> Search');
+            $(".dialog-background").hide();
+            $.ajax({
+                url: '/ContactFilter/getTotalContacs',
+                type: 'GET',
+                success: function (response) {
+                    var formattedCount = Number(response).toLocaleString();
+                    if (response >= 1000000) {
+                        $('#tcount').text('Verified Contacts (1M+)');
+                    } else {
+                        $('#tcount').text('Verified Contacts (' + formattedCount + ')');
+                    }
+
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error occurred while fetching total contacts:', error);
+                }
+            });
+
+        });
+        const sidebarToggle = document.querySelector("#sidebar-toggle");
+        sidebarToggle.addEventListener("click", function () {
+            document.querySelector("#sidebar").classList.toggle("collapsed");
+        });
+    });
+    function exportDataToExcel(data, fileName) {
+        var ws = XLSX.utils.json_to_sheet(data);
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+        var wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        saveAs(new Blob([wbout], { type: 'application/octet-stream' }), fileName);
+    }
+    function saveAs(blob, fileName) {
+        if (window.navigator.msSaveOrOpenBlob) {
+            window.navigator.msSaveOrOpenBlob(blob, fileName);
+        } else {
+            var link = document.createElement("a");
+            link.href = window.URL.createObjectURL(blob);
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+    function showModal() {
+        $('#myModal').modal('show');
+    }
+    function hideModal() {
+        $('#myModal').modal('hide');
+    }
+    function initializeDataTable() {
+        var table = $('#UsersTable').DataTable({
+            searching: false,
+            lengthChange: false,
+            "dom": '<"top"i>rt<"bottom"lp><"clear">', // Customize the pagination control
+            "pageLength": 25,
+            "ajax": {
+                url: '/ContactFilter/GetAll',
+                type: 'POST',
+                contentType: 'application/json',
+                data: function () {
+                    return getJsonData();
+                }
+            },
+            "columns": [
+                { 'data': 'id', "autoWidth": true },
+                { 'data': 'first_name', "autoWidth": true },
+                { 'data': 'job_title', "autoWidth": true },
+                { 'data': 'job_level', "autoWidth": true },
+                { 'data': 'job_department', "autoWidth": true },
+                { 'data': 'company', "autoWidth": true },
+                { 'data': 'country', "autoWidth": true },
+            ],
+            "columnDefs": [
+                {
+                    "targets": [0],
+                    "visible": false,
+                    "searchable": false
+                }
+            ]
+        });
+
+        // Add event listener for opening and closing details
+        $('#UsersTable tbody').on('click', 'tr', function () {
+            var tr = $(this);
+            var row = table.row(tr);
+
+            if (row.child.isShown()) {
+                // This row is already open - close it
+                row.child.hide();
+                tr.removeClass('shown');
+            } else {
+                // Close any open rows
+                // table.rows('.shown').every(function () {
+                //     this.child.hide();
+                //     $(this.node()).removeClass('shown');
+                // });
+
+                // Open this row
+                row.child(format(row.data())).show();
+                tr.addClass('shown');
+            }
+        });
+
+        function format(data) {
+            var detailView = '<div class="detail-view">' +
+                '<div class="row pb-1 pt-3 pe-2 ps-2">' +
+                (data.work_phone ? '<div class="col-md-3"><b>Direct Phone:</b> ' + data.work_phone + '</div>' : '') +
+                (data.work_email ? '<div class="col-md-3"><b>Work Email:</b> ' + data.work_email + '</div>' : '') +
+                (data.company_industry ? '<div class="col-md-3"><b>Company Industry:</b> ' + data.company_industry + '</div>' : '') +
+                (data.company_revenue ? '<div class="col-md-3"><b>Company Revenue (M):</b> ' + data.company_revenue + '</div>' : '') +
+                '</div>' +
+                '<div class="row pt-1 pe-2 ps-2">' +
+                (data.mobile ? '<div class="col-md-3"><b>Mobile:</b> ' + data.mobile + '</div>' : '') +
+                '<div class="col-md-3"></div>' +
+                '<div class="col-md-3"></div>' +
+                (data.company_employee_count ? '<div class="col-md-3"><b>Company Size:</b> ' + data.company_employee_count + '</div>' : '') +
+                '</div>' +
+                '<div class="row pb-3  pe-2 ps-2">' +
+                '<div class="col-md-3"></div>' +
+                (data.personal_email ? '<div class="col-md-3"><b>Personal Email:</b> ' + data.personal_email + '</div>' : '') +
+                '<div class="col-md-3">' +
+                (data.domain ? '<a href="' + data.domain + '" target="_blank"><img src="/images/web-link.png" alt="domain" width="25px" height="25px"></a>' : '') +
+                (data.linkedin_url ? '&nbsp;&nbsp;&nbsp;&nbsp;<a href="' + data.linkedin_url + '" target="_blank"><img src="/images/linkedin.png" alt="domain" width="25px" height="25px"></a>' : '') +
+                '</div>' +
+                '</div>' +
+                '</div>';
+            return detailView;
+        }
+
+
+
+
+        var paginationButtons = '<div class="d-flex justify-content-center mt-2">' +
+            '<ul class="pagination">' +
+            '<li class="paginate_button page-item previous disabled"><a href="#" class="page-link btn btn-primary"><i class="bi bi-chevron-left"></i></a></li>' +
+            '<li class="page-item"><span class="page-link current-page btn btn-primary">1</span></li>' +
+            '<li class="paginate_button page-item next disabled"><a href="#" class="page-link btn btn-primary"><i class="bi bi-chevron-right"></i></a></li>' +
+            '</ul>' +
+            '</div>';
+
+        $('.dataTables_wrapper').append(paginationButtons);
+
+        // Enable/disable previous and next buttons based on DataTable events
+        table.on('draw', function () {
+            var pageInfo = table.page.info();
+            $('.pagination .previous').toggleClass('disabled', pageInfo.page <= 0);
+            $('.pagination .next').toggleClass('disabled', pageInfo.page >= pageInfo.pages - 1);
+            $('.current-page').text(pageInfo.page + 1);
+        });
+
+        // Previous button click event
+        $('.pagination .previous').on('click', function () {
+            if (!$(this).hasClass('disabled')) {
+                table.page('previous').draw('page');
+            }
+        });
+
+        // Next button click event
+        $('.pagination .next').on('click', function () {
+            if (!$(this).hasClass('disabled')) {
+                table.page('next').draw('page');
+            }
+        });
+
+        return table;
+        return table;
+    }
+
+
+
+    function getJsonData() {
+        return JSON.stringify({
+            company: $('#txtcompany').val(),
+            keyword: $('#txtkeyword').val(),
+            city: $('#txtcity').val(),
+            country: $('#txtcountry').val(),
+            zip: $('#txtzip').val(),
+            state: $('#txtstate').val(),
+            locationtype: $('#txtlocationtype').val(),
+            minrevenue: parseInt($('#txtminrevenue').val()),
+            maxrevenue: parseInt($('#txtmaxrevenue').val()),
+            minemp: parseInt($('#txtminempsize').val()),
+            maxemp: parseInt($('#txtmaxempsize').val()),
+            department: getCheckedValues('selectAlldepartment'),
+            level: getCheckedValues('selectAlllevel'),
+            industry: getCheckedValues('heading'),
+            naics_code: $('#txtnaics').val(),
+            job_title: $('#txtjobtitle').val(),
+            first_name: $('#txtfirstname').val(),
+            last_name: $('#txtlastname').val(),
+            work_email: $('#txtemail').val(),
+        });
+    }
+    function getCheckedValues(className) {
+        var selectedValues = [];
+        $('.' + className + ':checked').each(function () {
+            var labelFor = $(this).attr('id');
+            var labelText = $('label[for="' + labelFor + '"]').text();
+            selectedValues.push(labelText);
+        });
+        return selectedValues;
+    }
+    function toggleChildCheckboxes(parentCheckbox) {
+        var data = $(parentCheckbox).attr('id');
+        var childCheckboxes = $('.' + data);
+        childCheckboxes.prop('checked', parentCheckbox.checked);
+    }
+</script>

@@ -1,0 +1,78 @@
+﻿@model Users
+<h2>Users Entry</h2>
+<form method="post">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6 col-12">
+                <div class="form-group">
+                    <label asp-for="Email"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6 col-12">
+                <div class="form-group">
+                    <label asp-for="password"></label>
+                    <input asp-for="password" class="form-control" type="password" />
+                    <span asp-validation-for="password" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6 col-12 mb-2">
+                <div class="form-group">
+                    <label asp-for="FirstName"></label>
+                    <input asp-for="FirstName" class="form-control" />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6 col-12 mb-2">
+                <div class="form-group">
+                    <label asp-for="LastName"></label>
+                    <input asp-for="LastName" class="form-control" />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6 col-12 mb-2">
+                <div class="form-group">
+                    <label asp-for="ExportTodayLimit"></label>
+                    <input asp-for="ExportTodayLimit" class="form-control" />
+                    <span asp-validation-for="ExportTodayLimit" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 mb-2">
+                <div class="form-group">
+                    <label asp-for="PerExportLimit"></label>
+                    <input asp-for="PerExportLimit" class="form-control" />
+                    <span asp-validation-for="PerExportLimit" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6 col-12 mb-2">
+                <div class="form-group">
+                    <div class="form-check">
+                        <input asp-for="isActive" class="form-check-input" />
+                        <label asp-for="isActive" class="form-check-label"></label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 mb-2">
+                <div class="form-group">
+                    <div class="form-check">
+                        <input asp-for="isAdmin" class="form-check-input" />
+                        <label asp-for="isAdmin" class="form-check-label"></label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 d-flex justify-content-end mb-2">
+                <button type="submit" class="btn btn-primary" asp-controller="Users" asp-action="index">Save</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+@section Scripts{
+    @{
+        <partial name="_ValidationScriptsPartial"></partial>
+    }
+}
+
+
